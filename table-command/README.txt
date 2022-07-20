@@ -1,4 +1,4 @@
-# Bienes-Raices
+# Aplicacion de consola genera Tabla de multiplicacion por parametros
 Aplicacion de consola para generar a traves de un script una tabla de multiplicacion debera seleccionar la base y hasta que numero multiplicar
 
 ejecutar npm i para la instalacion de los packetes de node_modules
