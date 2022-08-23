@@ -1,18 +1,30 @@
-const fs = require('fs')
+const fs = require('fs');
+
 const axios = require('axios');
 
 
 class Busquedas {
-
+    
     historial = [];
     dbPath = './db/database.json';
 
-
     constructor() {
-        //TODO: Leer DB si existe
+        this.leerDB();
     }
 
-    get paramsMapBox() {
+    get historialCapitalizado() {
+        return this.historial.map( lugar => {
+
+            let palabras = lugar.split(' ');
+            palabras = palabras.map( p => p[0].toUpperCase() + p.substring(1) );
+
+            return palabras.join(' ')
+
+        })
+    }
+
+
+    get paramsMapbox() {
         return {
             'access_token': process.env.MAPBOX_KEY,
             'limit': 5,
@@ -28,40 +40,41 @@ class Busquedas {
         }
     }
 
-    async city( city = '' ) {
+    async ciudad( lugar = '' ) {
 
         try {
-            //Peticion http
-            const instance = axios.create({
-                baseURL: `https://api.mapbox.com/geocoding/v5/mapbox.places/${city}.json`,
-                params: this.paramsMapBox
+            // Petición http
+            const intance = axios.create({
+                baseURL: `https://api.mapbox.com/geocoding/v5/mapbox.places/${ lugar }.json`,
+                params: this.paramsMapbox
             });
 
-            const resp = await instance.get();
-            return resp.data.features.map( place => ({
-                id: place.id,
-                nombre: place.place_name,
-                lng: place.center[0],
-                lat: place.center[1]
+            const resp = await intance.get();
+            return resp.data.features.map( lugar => ({
+                id: lugar.id,
+                nombre: lugar.place_name,
+                lng: lugar.center[0],
+                lat: lugar.center[1],
             }));
-        
+            
         } catch (error) {
             return [];
         }
     }
 
 
-    async wheather( lat, lon ) {
+    async climaLugar( lat, lon ) {
 
         try {
             
             const instance = axios.create({
                 baseURL: `https://api.openweathermap.org/data/2.5/weather`,
-                params: {...this.paramsWeather, lat, lon}
-            });
+                params: { ...this.paramsWeather, lat, lon }
+            })
 
             const resp = await instance.get();
-            const { weather, main} = resp.data;
+            const { weather, main } = resp.data;
+
             return {
                 desc: weather[0].description,
                 min: main.temp_min,
@@ -69,44 +82,52 @@ class Busquedas {
                 temp: main.temp
             }
 
-
-        }catch(err) {
-            console.log(err);
+        } catch (error) {
+            console.log(error);
         }
+
     }
 
 
-    addHistorial( place = '' ) {
-        
-        if( this.historial.includes(place.toLocaleLowerCase())) {
+    agregarHistorial( lugar = '' ) {
+
+        if( this.historial.includes( lugar.toLocaleLowerCase() ) ){
             return;
         }
+        this.historial = this.historial.splice(0,5);
 
-
-        this.historial.unshift( place.toLocaleLowerCase() );
+        this.historial.unshift( lugar.toLocaleLowerCase() );
 
         // Grabar en DB
-        this.saveDB();
-
-
+        this.guardarDB();
     }
 
-    saveDB() {
+    guardarDB() {
 
         const payload = {
             historial: this.historial
-        }
+        };
 
-        fs.writeFile( this.dbPath, JSON.stringify(payload) );
-
-    }
-
-    readDB() {
+        fs.writeFileSync( this.dbPath, JSON.stringify( payload ) );
 
     }
 
+    leerDB() {
+
+        if( !fs.existsSync( this.dbPath ) ) return;
+        
+        const info = fs.readFileSync( this.dbPath, { encoding: 'utf-8' });
+        const data = JSON.parse( info );
+
+        this.historial = data.historial;
+
+
+    }
 
 }
+
+
+
 
 
 module.exports = Busquedas;
