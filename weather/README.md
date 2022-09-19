@@ -1,9 +1,7 @@
-# Aplicación de Clima
+# Weather application
 
-Recuerden reconstruir los módulos de node con el comando
+Remember to rebuild the node modules with the command
 ```npm init```
 
-# Nota:
-Esto es parte de mi curso de Node:
-
-[Node de cero a experto](https://fernando-herrera.com/#/curso/node-cero-experto)
+Run application
+```npm start```
